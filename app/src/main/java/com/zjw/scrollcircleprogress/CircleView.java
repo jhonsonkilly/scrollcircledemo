@@ -191,7 +191,7 @@ public class CircleView extends View {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        setMeasuredDimension(dpToPx(20), dpToPx(20));
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         if (getParent() instanceof SeekBarView) {
             seekBarView = (SeekBarView) getParent();
         } else {
@@ -212,7 +212,7 @@ public class CircleView extends View {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
+        setMeasuredDimension(measureHeight, measureHeight);
 
 
     }

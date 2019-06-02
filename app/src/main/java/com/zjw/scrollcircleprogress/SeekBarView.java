@@ -189,12 +189,9 @@ public class SeekBarView extends FrameLayout {
                     if (finalPoint != null) {
                         if (getChildAt(0) instanceof CircleView) {
                             CircleView circleView = (CircleView) getChildAt(0);
-                            if (circleView == null) {
-                                throw new RuntimeException("the seekBarView must be one child");
-                            } else {
-                                circleView.simulateScroll(finalPoint);
-                            }
-
+                            circleView.simulateScroll(finalPoint);
+                        } else {
+                            throw new RuntimeException("the seekBarView must be one child");
                         }
                     }
                 }
@@ -234,7 +231,6 @@ public class SeekBarView extends FrameLayout {
             measureHeight = dpToPx(20);
         }
         heightMeasureSpec = MeasureSpec.makeMeasureSpec(measureHeight, MeasureSpec.EXACTLY);
-        widthMeasureSpec = MeasureSpec.makeMeasureSpec(measureWidth, MeasureSpec.EXACTLY);
         mOvalRadius = resetRadius == -1 ? measureHeight / 2 : resetRadius;
 
         int eachWidth = (measureWidth - 2 * mOvalRadius) / internalNumber;
@@ -247,7 +243,6 @@ public class SeekBarView extends FrameLayout {
 
             }
         }
-        Log.i("CircleViewParent", "measure");
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
 
@@ -299,13 +294,16 @@ public class SeekBarView extends FrameLayout {
     }
 
     /**
-     * 重置状态
+     * 设置进度条的圆点
      */
     protected void getCircleProgress(int progressMeasureWidth) {
         this.progressMeasureWidth = progressMeasureWidth;
         invalidate();
     }
 
+    /**
+     * 设置进度条的线
+     */
     protected void getLineProgress(int progressMeasureLine) {
         this.progressMeasureLine = progressMeasureLine;
         invalidate();
