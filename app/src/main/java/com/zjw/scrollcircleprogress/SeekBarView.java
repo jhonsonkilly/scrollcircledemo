@@ -27,7 +27,7 @@ public class SeekBarView extends FrameLayout {
     /**
      * 默认间隔
      */
-    private static final int defaultNumber = 9;
+    private static final int defaultNumber = 6;
     /**
      * 默认最小点击范围(像素)
      */
@@ -45,6 +45,10 @@ public class SeekBarView extends FrameLayout {
      * 背景的paint
      */
     private Paint mBackGroundPaint;
+    /**
+     * 进度条的paint
+     */
+    private Paint mProgressPaint;
     /**
      * 宽度
      */
@@ -66,6 +70,16 @@ public class SeekBarView extends FrameLayout {
      * 重置的小球半径
      */
     private int resetRadius = -1;
+
+    /**
+     * 进度条的小球
+     */
+    private int progressMeasureWidth = -1;
+
+    /**
+     * 进度条的线
+     */
+    private int progressMeasureLine = -1;
 
 
     public SeekBarView(Context context) {
@@ -93,10 +107,19 @@ public class SeekBarView extends FrameLayout {
         mBackGroundPaint = new Paint();
         mBackGroundPaint.setAntiAlias(true);
         mBackGroundPaint.setColor(Color.parseColor("#D0D0D0"));
-        mBackGroundPaint.setStrokeWidth(7);
-        mBackGroundPaint.setStyle(Paint.Style.STROKE);
+        mBackGroundPaint.setStrokeWidth(10);
+        mBackGroundPaint.setStyle(Paint.Style.FILL);
         mCircleView = new CircleView(context);
         addView(mCircleView);
+
+        mProgressPaint = new Paint();
+        mProgressPaint.setAntiAlias(true);
+        mProgressPaint.setColor(Color.parseColor("#FF7F71"));
+        mProgressPaint.setStrokeWidth(10);
+        mProgressPaint.setStrokeJoin(Paint.Join.ROUND);
+        mProgressPaint.setStyle(Paint.Style.FILL);
+
+
     }
 
     public void setOnclickCallBackListener(ClickCallBack clickCallBack) {
@@ -109,16 +132,42 @@ public class SeekBarView extends FrameLayout {
         float halfHeight = measureHeight / 2;
         int eachWidth = (measureWidth - 2 * mOvalRadius) / internalNumber;
         canvas.save();
-        canvas.translate(mOvalRadius, halfHeight);
+        canvas.translate(mOvalRadius, 0);
         int totalPaintWidth = 0;
 
+
         while (totalPaintWidth <= measureWidth) {
-            canvas.drawLine(totalPaintWidth, -halfHeight / 2, totalPaintWidth, halfHeight / 2, mBackGroundPaint);
+            //canvas.drawLine(totalPaintWidth, -halfHeight / 2, totalPaintWidth, halfHeight / 2, mBackGroundPaint);
+            canvas.drawCircle(totalPaintWidth, halfHeight, halfHeight / 2, mBackGroundPaint);
             totalPaintWidth = totalPaintWidth + eachWidth;
 
         }
         canvas.restore();
         canvas.drawLine(mOvalRadius, measureHeight / 2, measureWidth - mOvalRadius, measureHeight / 2, mBackGroundPaint);
+        canvas.save();
+        canvas.translate(mOvalRadius, 0);
+        int progressPaintWidth = 0;
+
+        for (int i = 0; i < mAllintervalPoints.size(); i++) {
+            if (progressPaintWidth != -1 && mAllintervalPoints.get(i).x >= progressMeasureLine) {
+                try {
+                    progressMeasureWidth = mAllintervalPoints.get(i - 1).x;
+                    break;
+                } catch (Exception e) {
+                    progressMeasureWidth = mAllintervalPoints.get(i).x;
+                }
+
+            }
+        }
+        while (progressPaintWidth <= progressMeasureWidth) {
+            //canvas.drawLine(totalPaintWidth, -halfHeight / 2, totalPaintWidth, halfHeight / 2, mBackGroundPaint);
+            canvas.drawCircle(progressPaintWidth, halfHeight, halfHeight / 2, mProgressPaint);
+            progressPaintWidth = progressPaintWidth + eachWidth;
+
+        }
+        canvas.restore();
+        canvas.drawLine(mOvalRadius, measureHeight / 2, progressMeasureLine + mOvalRadius, measureHeight / 2, mProgressPaint);
+
     }
 
     @Override
@@ -185,6 +234,7 @@ public class SeekBarView extends FrameLayout {
             measureHeight = dpToPx(20);
         }
         heightMeasureSpec = MeasureSpec.makeMeasureSpec(measureHeight, MeasureSpec.EXACTLY);
+        widthMeasureSpec = MeasureSpec.makeMeasureSpec(measureWidth, MeasureSpec.EXACTLY);
         mOvalRadius = resetRadius == -1 ? measureHeight / 2 : resetRadius;
 
         int eachWidth = (measureWidth - 2 * mOvalRadius) / internalNumber;
@@ -197,6 +247,7 @@ public class SeekBarView extends FrameLayout {
 
             }
         }
+        Log.i("CircleViewParent", "measure");
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
 
@@ -236,6 +287,7 @@ public class SeekBarView extends FrameLayout {
         requestLayout();
         invalidate();
     }
+
     /**
      * 重置状态
      */
@@ -245,4 +297,19 @@ public class SeekBarView extends FrameLayout {
         requestLayout();
         invalidate();
     }
+
+    /**
+     * 重置状态
+     */
+    protected void getCircleProgress(int progressMeasureWidth) {
+        this.progressMeasureWidth = progressMeasureWidth;
+        invalidate();
+    }
+
+    protected void getLineProgress(int progressMeasureLine) {
+        this.progressMeasureLine = progressMeasureLine;
+        invalidate();
+    }
+
+
 }

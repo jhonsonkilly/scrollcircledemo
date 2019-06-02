@@ -18,6 +18,7 @@ import android.widget.Scroller;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.zjw.scrollcircleprogress.SeekBarView.dpToPx;
 
 
 /**
@@ -53,6 +54,10 @@ public class CircleView extends View {
     private float centerX;
 
     private SeekBarView.ClickCallBack clickCallBack;
+    /**
+     * 父view
+     */
+    private SeekBarView seekBarView;
 
 
     public CircleView(Context context) {
@@ -87,6 +92,8 @@ public class CircleView extends View {
         mInnerPaint.setAntiAlias(true);
         mInnerPaint.setColor(Color.parseColor("#ffffff"));
         mInnerPaint.setStyle(Paint.Style.FILL);
+
+
     }
 
     @Override
@@ -95,34 +102,43 @@ public class CircleView extends View {
         int x = (int) event.getX();
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-
+                Log.i("CircleView", getRight() + "");
                 lastX = x;
                 break;
             case MotionEvent.ACTION_MOVE:
                 int offsetX = x - lastX;
                 if (getLeft() + offsetX >= 0 && getRight() + offsetX <= ((ViewGroup) getParent()).getMeasuredWidth()) {
                     ViewCompat.offsetLeftAndRight(this, offsetX);
+
+                    seekBarView.getLineProgress(getLeft());
                 }
+
+
                 break;
             case MotionEvent.ACTION_UP:
             case MotionEvent.ACTION_CANCEL:
                 int finalX = getLeft();
-                Log.i("CircleView", finalX + "");
                 for (int i = 0; i < mAllintervalPoints.size(); i++) {
                     if (mAllintervalPoints.get(i).x >= finalX) {
                         try {
                             if (mAllintervalPoints.get(i - 1).x + centerX >= finalX) {
                                 layout(mAllintervalPoints.get(i - 1).x, getTop(), mAllintervalPoints.get(i - 1).x + 2 * mOvalRadius, getBottom());
+                                seekBarView.getCircleProgress(mAllintervalPoints.get(i - 1).x);
+                                seekBarView.getLineProgress(mAllintervalPoints.get(i - 1).x);
                                 dispatchListener(i - 1);
                                 break;
 
                             } else {
                                 layout(mAllintervalPoints.get(i).x, getTop(), mAllintervalPoints.get(i).x + 2 * mOvalRadius, getBottom());
+                                seekBarView.getCircleProgress(mAllintervalPoints.get(i).x);
+                                seekBarView.getLineProgress(mAllintervalPoints.get(i).x);
                                 dispatchListener(i);
                                 break;
                             }
                         } catch (Exception e) {
                             layout(mAllintervalPoints.get(i).x, getTop(), mAllintervalPoints.get(i).x + 2 * mOvalRadius, getBottom());
+                            seekBarView.getCircleProgress(mAllintervalPoints.get(i).x);
+                            seekBarView.getLineProgress(mAllintervalPoints.get(i).x);
                             dispatchListener(i);
                             break;
                         }
@@ -149,6 +165,8 @@ public class CircleView extends View {
         layout(point.x, getTop(), point.x + 2 * mOvalRadius, getBottom());
         for (int i = 0; i < mAllintervalPoints.size(); i++) {
             if (mAllintervalPoints.get(i).x == point.x) {
+                seekBarView.getCircleProgress(point.x);
+                seekBarView.getLineProgress(point.x);
                 dispatchListener(i);
                 break;
             }
@@ -158,7 +176,6 @@ public class CircleView extends View {
 
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        Log.i("CircleView", "draw");
         canvas.drawCircle(mOvalRadius, measureHeight / 2, mOvalRadius, mOuterPaint);
         canvas.drawCircle(mOvalRadius, measureHeight / 2, mOvalRadius / 3, mInnerPaint);
 
@@ -174,23 +191,28 @@ public class CircleView extends View {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        measureHeight = getMeasuredHeight();
-        SeekBarView seekBarView = (SeekBarView) getParent();
-        if (seekBarView == null) {
+        setMeasuredDimension(dpToPx(20), dpToPx(20));
+        if (getParent() instanceof SeekBarView) {
+            seekBarView = (SeekBarView) getParent();
+        } else {
             throw new RuntimeException("this view parent must be seekBarView");
         }
+        measureHeight = getMeasuredHeight();
+
         try {
             mOvalRadius = seekBarView.mOvalRadius;
             mAllintervalPoints = seekBarView.mAllintervalPoints;
             centerX = (mAllintervalPoints.get(1).x - mAllintervalPoints.get(0).x) / 2;
             ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) getLayoutParams();
-            params.setMargins(mAllintervalPoints.get(mAllintervalPoints.size() - 2).x, 0, 0, 0);
+            params.setMargins(mAllintervalPoints.get(1).x, 0, 0, 0);
             setLayoutParams(params);
-            Log.i("CircleView", "measure");
+            seekBarView.getCircleProgress(mAllintervalPoints.get(mAllintervalPoints.size() - 2).x);
+            seekBarView.getLineProgress(getLeft());
+            Log.i("CircleView", measureHeight + "");
         } catch (Exception e) {
             e.printStackTrace();
         }
+
 
 
     }
